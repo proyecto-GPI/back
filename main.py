@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # http://127.0.0.1:8000/api/rlogin  Puerto BACK
 # http://127.0.0.1:8000/register  Puerto FRONT
 
-# http://127.0.0.1:8000/
+# http://127.0.0.1:8000/api/oficinas Puerto FRONT
 
 app = FastAPI()
 

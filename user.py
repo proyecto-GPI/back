@@ -11,23 +11,25 @@ from sqlalchemy.orm import sessionmaker
 import bcrypt
 import models
 
+from database import engine
+
 import json
 
 
 
 class user_psw(BaseModel): 
-    correo: str
-    contraseña: str
+    email: str
+    password: str
     
 class user_id(BaseModel): 
-    usr_id: str
+    id: str
 
 class register_user(BaseModel):
-    correo: str
-    contraseña: str
-    nombre: str
-    DNI: str
-    tipo: str
+    email: str
+    password: str
+    name: str
+    id: str
+    customer_type: str
 
 class register_state(BaseModel):
     ok: bool
@@ -45,17 +47,28 @@ async def login(login_data: user_psw):
     url = "http://127.0.0.1:8000/api/rlogin"
 
     # Enviar los datos al endpoint especificado
-    async with httpx.AsyncClient() as client: #De esta forma, se envian los datos simultaneamente mientras espero una respuesta
+    async with httpx.AsyncClient() as client:
         response = await client.post(url, json=login_dict)
-    # Devolver la respuesta del servidor(Se decodifica y se devuelve en formato json)
-    return response.json()
+
+    # Manejar casos donde la respuesta no tiene JSON
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail="Error en la autenticación")
+
+    try:
+        # Decodificar el contenido JSON
+        return json.loads(response.content.decode())
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Respuesta inválida del servidor de autenticación")
+
 
 @router2.post("/api/rlogin")
-async def rlogin(usuario_data: user_psw):  # Recibe un diccionario con los datos del usuario
+async def rlogin(usuario_data: dict):  # Recibe un diccionario con los datos del usuario
+    session = None
     try:
         Session = sessionmaker(bind=engine)
         session = Session()
-       
+        print("Datos recibidos:", usuario_data)
+        
         # Validar que el diccionario tenga los campos necesarios
         required_fields = ['email', 'password']
         for field in required_fields:
@@ -65,21 +78,21 @@ async def rlogin(usuario_data: user_psw):  # Recibe un diccionario con los datos
         # Buscar al usuario en la base de datos
         usuario_db = session.query(models.Users).filter(models.Users.email == usuario_data['email']).first()
         if not usuario_db:
-            raise HTTPException(status_code=404, detail="El nombre de usuario es incorrecto.")
-        if usuario_db.deshabilitado==1:
-            raise HTTPException(status_code=403, detail="No se puede loggear un usuario deshabilitado")
-       
-        # Validar la contraseña
-        if not bcrypt.checkpw(usuario_data['password'].encode('utf-8'), usuario_db.password):  # Esto debe ser sustituido por la lógica adecuada
+            raise HTTPException(status_code=404, detail="El email del usuario es incorrecto.")
+        
+        # Validar la contraseña directamente como texto plano (solo para pruebas)
+        if usuario_data['password'] != usuario_db.password:
             raise HTTPException(status_code=404, detail="Contraseña incorrecta.")
  
         print("Sesión iniciada correctamente")
-        return usuario_db
-    except IntegrityError as e:
-        print("Error al iniciar sesión:", e)
+        return {"detail": "Sesión iniciada correctamente", "id": usuario_db.id}
+    except Exception as e:
+        print("Error inesperado:", e)
         raise HTTPException(status_code=500, detail="Error interno al iniciar sesión")
     finally:
-        session.close()
+        if session:
+            session.close()
+
 
 
 @router3.post("/api/register")
@@ -97,8 +110,27 @@ async def register(register_data: register_user):
         return "Registro inválido"
 
 @router4.post("/api/okregister")
-async def rlogin(register_data: register_user):  # Recibe un diccionario con los datos del usuario
-    print("Registro completado correctamente")
-    ok = False
-    return ok
+async def okregister(register_data: register_user):  # Recibe un diccionario con los datos del usuario
+    session = None
+    try:
+        # Agregar usuario a la base de datos
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        nuevo_usuario = models.Users(
+            id=register_data.id,
+            name=register_data.name,
+            email=register_data.email,
+            password=register_data.password,  # Para pruebas está en texto plano
+            customer_type=register_data.customer_type,
+        )
+        session.add(nuevo_usuario)
+        session.commit()
 
+        print("Registro completado correctamente")
+        return {"detail": "Usuario registrado exitosamente"}  # Responde con código 200 por defecto
+    except Exception as e:
+        print("Error en el registro:", e)
+        raise HTTPException(status_code=500, detail="Error interno al registrar usuario")
+    finally:
+        if session:
+            session.close()
