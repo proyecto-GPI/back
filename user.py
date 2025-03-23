@@ -8,7 +8,7 @@ from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Literal 
 from sqlalchemy.orm import sessionmaker
-import bscript
+import bcrypt
 import models
 
 import json
