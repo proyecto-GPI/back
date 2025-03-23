@@ -42,7 +42,7 @@ class Booking (Base):
   price = Column(DECIMAL(10,2))  
 
   __table_args__ = (
-        CheckConstraint("LENGTH(credit_card) = 16 AND credit_card ~ '^[0-9]+$'", name="valid_credit_card")
+        CheckConstraint("LENGTH(credit_card) = 16 AND credit_card ~ '^[0-9]+$'", name="valid_credit_card"),
     )
 
 

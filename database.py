@@ -10,7 +10,6 @@ url="postgresql://autoveloz_creator:autovelozGPI@localhost:5432/autoveloz"
 engine = create_engine(url)
 
 
-
 SessionLocal = sessionmaker( autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
