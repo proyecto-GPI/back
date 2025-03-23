@@ -17,8 +17,8 @@ cur = conn.cursor()
 
 
 # we define de 2 types of enum
-cur.execute("CREATE TYPE status AS ENUM ('pending', 'confirmed', 'cancelled', 'completed') ON CONFLICT DO NOTHING;")
-cur.execute("CREATE TYPE customer_type AS ENUM ('individual', 'business') ON CONFLICT DO NOTHING;")
+cur.execute("CREATE TYPE status AS ENUM ('pending', 'confirmed', 'cancelled', 'completed')")
+cur.execute("CREATE TYPE customer_type AS ENUM ('individual', 'business')")
 
 # we create the needed tables
 tables_statement = """
