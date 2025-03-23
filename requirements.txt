@@ -9,3 +9,5 @@ uvicorn==0.27.1
 httpx ==0.26.0
 virtualenv==20.25.1
 journeylib==2.0.12
+psycopg2-binary==2.9.10
+SQLAlchemy==2.0.39
