@@ -7,6 +7,8 @@ from sqlalchemy.orm import relationship
 
 
 
+
+
 class Office(Base):
   __tablename__= 'office'
   id = Column(Integer, primary_key=True, nullable=False)
