@@ -32,22 +32,22 @@ db.refresh(office2)
 # Create test Bookings
 booking1 = Booking(
     user_id=user1.id,
-    pickUp_id=office1.id,
+    pickup_id=office1.id,
     return_id=office2.id,
     status="pending",
     credit_card="1234567812345678",
-    pickUp_date=datetime.now() + timedelta(days=1),
+    pickup_date=datetime.now() + timedelta(days=1),
     return_date=datetime.now() + timedelta(days=7),
     price=150.00
 )
 
 booking2 = Booking(
     user_id=user2.id,
-    pickUp_id=office2.id,
+    pickup_id=office2.id,
     return_id=office1.id,
     status="confirmed",
     credit_card="8765432187654321",
-    pickUp_date=datetime.now() + timedelta(days=3),
+    pickup_date=datetime.now() + timedelta(days=3),
     return_date=datetime.now() + timedelta(days=10),
     price=450.00
 )

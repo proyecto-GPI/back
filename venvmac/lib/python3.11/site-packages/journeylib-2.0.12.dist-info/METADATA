@@ -1,0 +1,67 @@
+Metadata-Version: 2.1
+Name: journeylib
+Version: 2.0.12
+Summary: Libreria para gestionar datos del historico del proyecto GPTravel
+Home-page: https://ismigit.fi.upm.es/gptravel-2024/ai-squad/journeygenai
+Author: Equipo JourneyGen UPM
+Author-email: f.gonzalez.lopez@alumnos.upm.es
+License: MIT
+Platform: UNKNOWN
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi
+Requires-Dist: requests
+
+La librería del equipo JourneyGen ofrece dos métodos que permitirán al cliente conocer su histórico dentro GPTravel.
+
+**ins_historico(usr, tipoIA, num_chat, lista_msg, contexto)**
+
+**PRE:**
+
+- usr (str): es un nombre de usuario válido.
+
+- tipoIA (enum): se trata de un string de entre la lista ['PASADO', 'PRESENTE', 'FUTURO', 'COMPRA'].
+
+- num_chat (int): se trata de un número válido que puede ser:
+
+    1. El identificador de chat existente.
+
+    2. None (en este caso, crearía un chat nuevo).
+
+- lista_msg: es una lista de diccionarios formato {'role': '', 'content': ''}, donde "role" puede solo tomar 3 valores (string) significativos ("user", "assistant", "system").
+
+- contexto (str): es un string que indica el contexto que use la IA que esté teniendo la conversación.
+
+**POST:** Inserta un nuevo mensaje a la base de datos de CASH BE (Backend).
+
+**DEVUELVE:** el valor identificativo (int) asociado al chat sobre el que se insertan los mensajes.
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+**get_historico(usr, tipoIA, num_chat)**
+
+**PRE:**
+
+- usr (str): es un nombre de usuario válido.
+
+- tipoIA (enum): se trata de un string de entre la lista ['PASADO', 'PRESENTE', 'FUTURO', 'COMPRA'].
+
+- num_chat (int): es un int correspondiente a un identificador de chat existente
+
+DEVUELVE: 
+Una lista de diccionarios (JSON) con el siguiente formato:
+
+{'role': '', 'content': ''}
+
+1. El primer mensaje será con role = 'system' y content = 'contexto de la IA'.
+    
+2. El resto de mensajes serán pares que alternarán entre mensajes del usuario y la IA.
+
+
+Las funciones **ins_historico()** y **get_historico()** incorporan un parámetro extra llamado "url". Por defecto, este parámetro contiene la URL donde está desplegado el API de CASH BE. Esta URL puede sobrescribirse para hacer pruebas en local.
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+Para instalar esta librería basta con hacer: **pip install journeylib**.
+
+Es posible encontrar la librería en PyPi en el siguiente link: https://pypi.org/project/journeylib/
+
