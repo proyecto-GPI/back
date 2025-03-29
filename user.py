@@ -8,40 +8,45 @@ from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Literal 
 from sqlalchemy.orm import sessionmaker
-import bcrypt
+
 import models
 
 from database import engine
 
 import json
 
-
-
-class user_psw(BaseModel): 
-    email: str
-    password: str
-    
-class user_id(BaseModel): 
-    id: str
-
-class register_user(BaseModel):
-    email: str
-    password: str
-    name: str
-    id: str
-    customer_type: str
-
-class register_state(BaseModel):
-    ok: bool
-
 router1 = APIRouter()
 router2 = APIRouter()
 router3 = APIRouter()
 router4 = APIRouter()
 
+# Aquí defines tus endpoints
+
+class UserLogin(BaseModel):
+    correo: str
+    contrasenya: str
+
+class UserID(BaseModel):
+    id: str
+
+class UserRegister(BaseModel):
+    id: str
+    correo: str
+    nombre: str
+    contrasenya: str
+    tipo_cliente: Literal['negocio', 'particular', 'admin']
+  
+
+class register_state(BaseModel):
+    ok: bool
+
+
+
+
 
 @router1.post("/api/login")
-async def login(login_data: user_psw):
+async def login(login_data: UserLogin):
+
     # Convertir los datos del modelo Pydantic a un diccionario
     login_dict = login_data.dict()
     url = "http://127.0.0.1:8000/api/rlogin"
@@ -57,6 +62,7 @@ async def login(login_data: user_psw):
     try:
         # Decodificar el contenido JSON
         return json.loads(response.content.decode())
+    
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Respuesta inválida del servidor de autenticación")
 
@@ -76,7 +82,8 @@ async def rlogin(usuario_data: dict):  # Recibe un diccionario con los datos del
                 raise HTTPException(status_code=400, detail=f"El campo {field} es requerido.")
  
         # Buscar al usuario en la base de datos
-        usuario_db = session.query(models.Users).filter(models.Users.email == usuario_data['email']).first()
+        usuario_db = session.query(models.Usuario).filter(models.Usuario.correo == usuario_data['email']).first()
+
         if not usuario_db:
             raise HTTPException(status_code=404, detail="El email del usuario es incorrecto.")
         
@@ -84,7 +91,7 @@ async def rlogin(usuario_data: dict):  # Recibe un diccionario con los datos del
         if usuario_data['password'] != usuario_db.password:
             raise HTTPException(status_code=404, detail="Contraseña incorrecta.")
  
-        print("Sesión iniciada correctamente")
+        print(f"Sesión iniciada correctamente id : {usuario_db.id}")
         return {"detail": "Sesión iniciada correctamente", "id": usuario_db.id}
     except Exception as e:
         print("Error inesperado:", e)
@@ -96,7 +103,7 @@ async def rlogin(usuario_data: dict):  # Recibe un diccionario con los datos del
 
 
 @router3.post("/api/register")
-async def register(register_data: register_user):
+async def register(register_data: UserRegister):
     register_dict = register_data.dict()
     url = "http://127.0.0.1:8000/api/okregister"
 
@@ -110,19 +117,21 @@ async def register(register_data: register_user):
         return "Registro inválido"
 
 @router4.post("/api/okregister")
-async def okregister(register_data: register_user):  # Recibe un diccionario con los datos del usuario
+async def okregister(register_data: UserRegister):  # Recibe un diccionario con los datos del usuario
     session = None
     try:
         # Agregar usuario a la base de datos
         Session = sessionmaker(bind=engine)
         session = Session()
-        nuevo_usuario = models.Users(
+        nuevo_usuario = models.Usuario(
             id=register_data.id,
-            name=register_data.name,
-            email=register_data.email,
-            password=register_data.password,  # Para pruebas está en texto plano
-            customer_type=register_data.customer_type,
+            nombre=register_data.name,
+            correo=register_data.email,
+            contrasenya=register_data.password,  # ⚠️ Para pruebas, en texto plano
+            tipo_cliente=register_data.customer_type,
+            fecha_registro=date.today()  # ⬅️ Añade esto si es requerido y no viene en register_data
         )
+
         session.add(nuevo_usuario)
         session.commit()
 
