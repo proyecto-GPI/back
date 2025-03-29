@@ -10,8 +10,8 @@ from sqlalchemy.orm import relationship
 # REVISAR si este tipo de estrucutras es correcta 
 descuento_usuario = Table("descuento_usuario", 
                       Base.metadata,
-                      Column( 'DNI_usuario', String(9), ForeignKey('usuario.DNI_usuario'), primary_key=True),
-                      Column( 'cod_descuento', String(15), ForeignKey('descuento.cod_descuento'), primary_key=True))
+                      Column( 'id_usuario', String(9), ForeignKey('usuario.id_usuario'), primary_key=True),
+                      Column( 'codigo', String(10), ForeignKey('descuento.codigo'), primary_key=True))
 
 
 class Usuario (Base):
@@ -28,16 +28,16 @@ class Usuario (Base):
   usuario_tiene_asignado_descuento = relationship("Descuento", secondary=descuento_usuario, back_populates="descuento_tiene_asignado_usuario")
 
 #relacion m2m entre descuento y documento de pago
-descuento_documento_pago = Table("descunto_documento_pago", 
+descuento_documento_pago = Table("descuento_documento_pago", 
                       Base.metadata,
                       Column( 'id_documento', Integer, ForeignKey('documento_pago.id_documento'), primary_key=True),
-                      Column( 'cod_descuento', String(15), ForeignKey('descuento.cod_descuento'), primary_key=True))
+                      Column( 'codigo', String(10), ForeignKey('descuento.codigo'), primary_key=True))
 
 
 #relacion m2m entre  modelo y tarifa 
 modelo_tarifa = Table("modelo_tarifa", 
                       Base.metadata,
-                      Column( 'modelo', String(100), ForeignKey('modelo.modelo'), primary_key=True),
+                      Column( 'modelo', String(80), ForeignKey('modelo.modelo'), primary_key=True),
                       Column( 'id_tarifa', Integer, ForeignKey('tarifa.id_tarifa'), primary_key=True))
 
 class Modelo (Base):
@@ -98,7 +98,7 @@ class Oficina(Base):
 #relacion m2m entre extra y reserva
 extra_reserva = Table("extra_reserva", 
                       Base.metadata,
-                      Column( 'id_extra', String(15), ForeignKey('extra.id_extra'), primary_key=True),
+                      Column( 'id_extra', Integer, ForeignKey('extra.id_extra'), primary_key=True),
                       Column( 'id_reserva', Integer, ForeignKey('reserva.id_reserva'), primary_key=True))
 
 #NO esta completada del todo-----------------------------------------
@@ -121,7 +121,7 @@ class Reserva (Base):
   #id_tarifa = Column(Integer, ForeignKey('tarifa. id_tarifa'), nullable=False)
   id_oficina_recogida_real = Column(Integer, ForeignKey('oficina.id_oficina'), ondelete='NO ACTION', onupdate='NO ACTION')
   id_oficina_devolucion_real = Column(Integer, ForeignKey('oficina.id_oficina'), ondelete='NO ACTION', onupdate='NO ACTION')
-  id_coche = Column(Integer, ForeignKey('coche.id_coche', ondelete='NO ACTION', onupdate='NO ACTION'), nullable=False) 
+  id_coche = Column(Integer, ForeignKey('coche.id', ondelete='NO ACTION', onupdate='NO ACTION'), nullable=False) 
   id_reserva_padre = Column(Integer, ForeignKey('reserva.id_reserva', ondelete='NO ACTION', onupdate='NO ACTION'))
 
 #cosas de antes por corregir y/o descartar -------
@@ -221,7 +221,7 @@ class Tarifa_ld (Base):
 documento_pago_extra = Table("documento_pago_extra", 
                       Base.metadata,
                       Column( 'id_documento', Integer, ForeignKey('documento_pago.id_documento'), primary_key=True),
-                      Column( 'codigo_extra', String(15), ForeignKey('extra.codigo_extra'), primary_key=True))
+                      Column( 'id_extra', Integer, ForeignKey('extra.id_extra'), primary_key=True))
 
 
 class Documento_pago (Base):
@@ -324,7 +324,7 @@ class UbicadoEn(Base):
   fecha_hasta = Column(DateTime, primary_key=True, nullable=False)
   fecha_desde = Column(DateTime)
   
-  coche_id = Column(Integer, ForeignKey("coche.id_coche"), nullable=False)  
+  coche_id = Column(Integer, ForeignKey("coche.id"), nullable=False)  
   oficina_id = Column(Integer, ForeignKey("oficina.id_oficina"), nullable=False) 
   
   coche_ubi = relationship("Coche", back_populates="ubicaciones")
