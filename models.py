@@ -101,8 +101,6 @@ class Oficina(Base):
   direccion = Column(String(512), nullable=False, unique=True)
 
   ubicaciones = relationship("UbicadoEn", back_populates="oficina")
-  oficina_recoge_reserva = relationship("Reserva", back_populates="reserva_recoge_oficina")
-  oficina_devuelve_reserva = relationship("Reserva", back_populates="reserva_devuelve_oficina")
   oficina_pagado_en_documento_pago = relationship("Documento_pago", back_populates="documento_pago_pagado_en_oficina")
   oficina_recoge_reserva = relationship(
       "Reserva",
