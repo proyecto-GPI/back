@@ -424,13 +424,13 @@ class Descuento (Base):
 
 #Para relaciones con atributo (# REVISAR si este tipo de estrucutras es correcta )
 class UbicadoEn(Base):
-  __tablename__ = 'ubicado_en'
+  __tablename__ = 'coche_en_oficina'
 
   fecha_hasta = Column(DateTime, primary_key=True, nullable=False)
   fecha_desde = Column(DateTime)
   
-  coche_id = Column(Integer, ForeignKey("coche.id"), nullable=False)  
-  oficina_id = Column(Integer, ForeignKey("oficina.id_oficina"), nullable=False) 
+  id_coche = Column(Integer, ForeignKey("coche.id"), primary_key=True, nullable=False)  
+  id_oficina = Column(Integer, ForeignKey("oficina.id_oficina"), primary_key=True, nullable=False) 
   
   coche_ubi = relationship("Coche", back_populates="ubicaciones")
   oficina = relationship("Oficina", back_populates="ubicaciones")

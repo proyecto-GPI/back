@@ -2,14 +2,14 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Booking
+from models import Reserva
 from typing import List
 
 router = APIRouter()
 
 @router.get("/api/bookings")
-def get_bookings(db: Session = Depends(get_db)):
-    return db.query(Booking).order_by(Booking.id.asc()).all()
+async def get_bookings(db: Session = Depends(get_db)):
+    return db.query(Reserva).order_by(Reserva.id.asc()).all()
 
 
 
