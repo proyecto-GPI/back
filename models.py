@@ -123,7 +123,7 @@ extra_reserva = Table("extra_reserva",
                       Column( 'id_reserva', Integer, ForeignKey('reserva.id_reserva'), primary_key=True))
 
 #NO esta completada del todo-----------------------------------------
-class Reserva (Base):
+class Reserva(Base):
   __tablename__= 'reserva'
   id_reserva=Column(Integer, primary_key=True, nullable=False)
   oficina_recogida_propuesta = Column(Integer,  nullable=False)
@@ -158,13 +158,6 @@ class Reserva (Base):
       back_populates="oficina_devuelve_reserva",
       foreign_keys=[id_oficina_devolucion_real]
   )
-  id_tarifa = Column(
-    Integer,
-    ForeignKey('tarifa.id_tarifa', ondelete='NO ACTION', onupdate='NO ACTION'),
-    nullable=False
-  )
-
-  reserva_tiene_tarifa = relationship("Tarifa", back_populates="tarifa_tiene_reserva")
 
   reserva_finaliza_y_genera_documento_pago = relationship("Documento_pago", back_populates="documento_pago_finaliza_y_genera_reserva")
 
@@ -177,6 +170,15 @@ class Reserva (Base):
   )
 
   reserva_tiene_descuento = relationship("Descuento", back_populates="descuento_tiene_reserva")
+
+  id_reserva_padre = Column(
+    Integer,
+    ForeignKey('reserva.id_reserva', ondelete='NO ACTION', onupdate='NO ACTION'),
+    nullable=True
+  )
+
+  reserva_padre = relationship("Reserva", remote_side="Reserva.id_reserva")
+
 
 
 
@@ -253,7 +255,6 @@ class Tarifa (Base):
 
   tarifa_tiene_modelo = relationship("Modelo", secondary=modelo_tarifa, back_populates="modelo_tiene_tarifa")
   calculado_por = relationship("CalculadoPor", back_populates="tarifa")
-  tarifa_tiene_reserva = relationship("Reserva", back_populates="reserva_tiene_tarifa")
 
   
 

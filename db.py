@@ -16,15 +16,34 @@ conn = psycopg2.connect(host = "localhost", dbname="autoveloz", user="autoveloz_
 cur = conn.cursor()
 
 
-# definimos los ENUM necesarios
-cur.execute("CREATE TYPE categoria AS ENUM('alta', 'media', 'baja')")
-cur.execute("CREATE TYPE tipo_cliente AS ENUM('negocio', 'particular', 'admin')")
-cur.execute("CREATE TYPE tipo_cambio AS ENUM('m', 'a')")
-cur.execute("CREATE TYPE tipo_tarifa AS ENUM('tarifa_cd', 'tarifa_ld')")
-cur.execute("CREATE TYPE tipo_tarifa_cd AS ENUM('dia_km', 'km', 'dia', 'semana', 'fin_semana')")
-cur.execute("CREATE TYPE periodo AS ENUM('1', '2', '3')")
-cur.execute("CREATE TYPE forma_pago AS ENUM('efectivo', 'tarjeta')")
-cur.execute("CREATE TYPE estado AS ENUM('pendiente', 'en_curso', 'finalizada', 'modificada', 'cancelada') ")
+# Lista de tipos ENUM con su nombre y definición
+enum_types = [
+    ("categoria", "ENUM('alta', 'media', 'baja')"),
+    ("tipo_cliente", "ENUM('negocio', 'particular', 'admin')"),
+    ("tipo_cambio", "ENUM('m', 'a')"),
+    ("tipo_tarifa", "ENUM('tarifa_cd', 'tarifa_ld')"),
+    ("tipo_tarifa_cd", "ENUM('dia_km', 'km', 'dia', 'semana', 'fin_semana')"),
+    ("periodo", "ENUM('1', '2', '3')"),
+    ("forma_pago", "ENUM('efectivo', 'tarjeta')"),
+    ("estado", "ENUM('pendiente', 'en_curso', 'finalizada', 'modificada', 'cancelada')")
+]
+
+# Crear cada tipo si no existe
+for type_name, type_def in enum_types:
+    cur.execute(f"""
+        SELECT EXISTS (
+            SELECT 1
+            FROM pg_type
+            WHERE typname = %s
+        );
+    """, (type_name,))
+    exists = cur.fetchone()[0]
+
+    if not exists:
+        cur.execute(f"CREATE TYPE {type_name} AS {type_def}")
+        print(f"Tipo '{type_name}' creado.")
+    else:
+        print(f"Tipo '{type_name}' ya existe, no se crea de nuevo.")
 
 
 
@@ -32,6 +51,7 @@ cur.execute("CREATE TYPE estado AS ENUM('pendiente', 'en_curso', 'finalizada', '
 tables_statement = """
 
 -- usuario
+DROP TABLE IF EXISTS usuario CASCADE;
 CREATE TABLE IF NOT EXISTS usuario (
    id CHAR(9) PRIMARY KEY,
    correo VARCHAR(255) NOT NULL UNIQUE,
@@ -45,6 +65,7 @@ COMMENT ON COLUMN usuario.id IS 'DNI o NIF';
 
 
 -- modelo
+DROP TABLE IF EXISTS modelo CASCADE;
 CREATE TABLE IF NOT EXISTS modelo (
    modelo VARCHAR(80) NOT NULL,
    categoria categoria NOT NULL,
@@ -54,6 +75,7 @@ CREATE TABLE IF NOT EXISTS modelo (
 
 
 -- coche
+DROP TABLE IF EXISTS coche CASCADE;
 CREATE TABLE IF NOT EXISTS coche (
    id SERIAL PRIMARY KEY,
    techo_solar BOOLEAN NOT NULL,
@@ -68,7 +90,7 @@ CREATE TABLE IF NOT EXISTS coche (
       ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_coche_modelo1_idx ON coche (modelo ASC, categoria ASC);
+CREATE INDEX  IF NOT EXISTS fk_coche_modelo1_idx ON coche (modelo ASC, categoria ASC);
 
 COMMENT ON COLUMN coche.id IS 'Identificador del coche que se autoincrementa cada vez que creamos una instancia de la entidad nueva';
 
@@ -76,6 +98,7 @@ COMMENT ON COLUMN coche.tipo_cambio IS '1 si libre. 0 si ocupado';
 
 
 -- oficina
+DROP TABLE IF EXISTS oficina CASCADE;
 CREATE TABLE IF NOT EXISTS oficina (
    id_oficina SERIAL PRIMARY KEY,
    direccion  VARCHAR(512) NOT NULL UNIQUE
@@ -83,6 +106,7 @@ CREATE TABLE IF NOT EXISTS oficina (
  
 
 -- reserva
+DROP TABLE IF EXISTS reserva CASCADE;
 CREATE TABLE IF NOT EXISTS reserva (
    id_reserva SERIAL PRIMARY KEY,
    oficina_recogida_propuesta INT NOT NULL,
@@ -126,15 +150,15 @@ CREATE TABLE IF NOT EXISTS reserva (
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_reserva_usuario1_idx ON reserva (id_usuario ASC);
+CREATE INDEX IF NOT EXISTS fk_reserva_usuario1_idx ON reserva (id_usuario ASC);
 
-CREATE INDEX fk_reserva_oficina1_idx ON reserva (id_oficina_recogida_real ASC);
+CREATE INDEX IF NOT EXISTS fk_reserva_oficina1_idx ON reserva (id_oficina_recogida_real ASC);
 
-CREATE INDEX fk_reserva_oficina2_idx ON reserva (id_oficina_devolucion_real ASC);
+CREATE INDEX IF NOT EXISTS fk_reserva_oficina2_idx ON reserva (id_oficina_devolucion_real ASC);
 
-CREATE INDEX fk_reserva_coche1_idx ON reserva (id_coche ASC);
+CREATE INDEX IF NOT EXISTS fk_reserva_coche1_idx ON reserva (id_coche ASC);
 
-CREATE INDEX fk_reserva_reserva1_idx ON reserva (id_reserva_padre ASC);
+CREATE INDEX IF NOT EXISTS fk_reserva_reserva1_idx ON reserva (id_reserva_padre ASC);
 
 COMMENT ON COLUMN reserva.id_reserva IS 'Autoincremental';
 
@@ -144,6 +168,7 @@ COMMENT ON COLUMN reserva.oficina_devolucion_propuesta IS  'Análogo a la de rec
 
 
 -- tarifa
+DROP TABLE IF EXISTS tarifa CASCADE;
 CREATE TABLE IF NOT EXISTS tarifa (
    id_tarifa SERIAL PRIMARY KEY,
    tipo_tarifa tipo_tarifa NOT NULL
@@ -151,6 +176,7 @@ CREATE TABLE IF NOT EXISTS tarifa (
 
 
 -- tarifa_cd
+DROP TABLE IF EXISTS tarifa_cd CASCADE;
 CREATE TABLE IF NOT EXISTS tarifa_cd (
    id_tarifa INT NOT NULL,
    tipo_tarifa_cd tipo_tarifa_cd NOT NULL,
@@ -166,6 +192,7 @@ CREATE TABLE IF NOT EXISTS tarifa_cd (
 
 
 -- estado_coche
+DROP TABLE IF EXISTS estado_coche CASCADE;
 CREATE TABLE IF NOT EXISTS estado_coche(
    id_coche INT NOT NULL,
    fecha_desde DATE NOT NULL,
@@ -179,10 +206,11 @@ CREATE TABLE IF NOT EXISTS estado_coche(
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_estado_coche_coche1_idx ON estado_coche (id_coche ASC);
+CREATE INDEX IF NOT EXISTS fk_estado_coche_coche1_idx ON estado_coche (id_coche ASC);
 
 
 -- tarifa_ld
+DROP TABLE IF EXISTS tarifa_ld CASCADE;
 CREATE TABLE IF NOT EXISTS tarifa_ld(
    id_tarifa SERIAL PRIMARY KEY,
    precio DECIMAL(10,2) NOT NULL,
@@ -195,6 +223,7 @@ CREATE TABLE IF NOT EXISTS tarifa_ld(
 
 
 -- 
+DROP TABLE IF EXISTS documento_pago CASCADE;
 CREATE TABLE IF NOT EXISTS documento_pago (
    id_documento SERIAL PRIMARY KEY,
    id_reserva  INT NOT NULL,
@@ -214,12 +243,13 @@ CREATE TABLE IF NOT EXISTS documento_pago (
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_documento_pago_reserva1_idx ON documento_pago (id_reserva ASC);
+CREATE INDEX IF NOT EXISTS fk_documento_pago_reserva1_idx ON documento_pago (id_reserva ASC);
 
-CREATE INDEX fk_documento_pago_oficina1_idx ON documento_pago (id_oficina ASC);
+CREATE INDEX IF NOT EXISTS fk_documento_pago_oficina1_idx ON documento_pago (id_oficina ASC);
 
 
 -- estado_reserva
+DROP TABLE IF EXISTS estado_reserva CASCADE;
 CREATE TABLE IF NOT EXISTS estado_reserva (
    id_reserva  INT NOT NULL,
    id_estado  estado NOT NULL,
@@ -233,10 +263,11 @@ CREATE TABLE IF NOT EXISTS estado_reserva (
 );
 
 
-CREATE INDEX fk_estado_reserva_reserva1_idx ON estado_reserva (id_reserva ASC);
+CREATE INDEX IF NOT EXISTS fk_estado_reserva_reserva1_idx ON estado_reserva (id_reserva ASC);
 
 
 -- extra
+DROP TABLE IF EXISTS extra CASCADE;
 CREATE TABLE IF NOT EXISTS extra(
    id_extra SERIAL PRIMARY KEY,
    descripcion  VARCHAR(45) NOT NULL UNIQUE
@@ -245,6 +276,7 @@ CREATE TABLE IF NOT EXISTS extra(
 -- -----------------------------------------------------
 -- Table `AutoVeloz`.`historico_precio`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS historico_precio CASCADE;
 CREATE TABLE IF NOT EXISTS historico_precio (
    fecha_establecido DATE NOT NULL,
    precio  DECIMAL(10,2) NOT NULL,
@@ -257,10 +289,11 @@ CREATE TABLE IF NOT EXISTS historico_precio (
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_historico_precio_extra1_idx ON historico_precio (id_extra ASC);
+CREATE INDEX IF NOT EXISTS fk_historico_precio_extra1_idx ON historico_precio (id_extra ASC);
 
 
 -- descuento
+DROP TABLE IF EXISTS descuento CASCADE;
 CREATE TABLE IF NOT EXISTS descuento (
    codigo VARCHAR(10) PRIMARY KEY,
    caducidad  DATE NULL,
@@ -273,10 +306,11 @@ CREATE TABLE IF NOT EXISTS descuento (
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_descuento_reserva1_idx ON descuento (id_reserva ASC);
+CREATE INDEX IF NOT EXISTS fk_descuento_reserva1_idx ON descuento (id_reserva ASC);
 
 
 -- reserva_has_extra
+DROP TABLE IF EXISTS reserva_has_extra CASCADE;
 CREATE TABLE IF NOT EXISTS reserva_has_extra (
    id_reserva  INT NOT NULL,
    id_extra  INT NOT NULL,
@@ -293,12 +327,13 @@ CREATE TABLE IF NOT EXISTS reserva_has_extra (
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_reserva_has_extra_extra1_idx ON reserva_has_extra (id_extra ASC);
+CREATE INDEX IF NOT EXISTS fk_reserva_has_extra_extra1_idx ON reserva_has_extra (id_extra ASC);
 
-CREATE INDEX fk_reserva_has_extra_reserva_idx ON reserva_has_extra (id_reserva ASC);
+CREATE INDEX IF NOT EXISTS fk_reserva_has_extra_reserva_idx ON reserva_has_extra (id_reserva ASC);
 
 
 -- usuario_has_descuento
+DROP TABLE IF EXISTS usuario_has_descuento CASCADE;
 CREATE TABLE IF NOT EXISTS usuario_has_descuento (
    usuario_id  CHAR(9) NOT NULL,
    descuento_codigo  VARCHAR(10) NOT NULL,
@@ -315,12 +350,13 @@ CREATE TABLE IF NOT EXISTS usuario_has_descuento (
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_usuario_has_descuento_descuento1_idx ON usuario_has_descuento (descuento_codigo ASC);
+CREATE INDEX IF NOT EXISTS fk_usuario_has_descuento_descuento1_idx ON usuario_has_descuento (descuento_codigo ASC);
 
-CREATE INDEX fk_usuario_has_descuento_usuario1_idx ON usuario_has_descuento (usuario_id ASC);
+CREATE INDEX IF NOT EXISTS fk_usuario_has_descuento_usuario1_idx ON usuario_has_descuento (usuario_id ASC);
 
 
 -- coche_en_oficina
+DROP TABLE IF EXISTS coche_en_oficina CASCADE;
 CREATE TABLE IF NOT EXISTS coche_en_oficina(
    id_coche  INT NOT NULL,
    id_oficina INT NOT NULL,
@@ -339,12 +375,13 @@ CREATE TABLE IF NOT EXISTS coche_en_oficina(
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_coche_has_oficina_oficina1_idx ON coche_en_oficina (id_oficina ASC);
+CREATE INDEX IF NOT EXISTS fk_coche_has_oficina_oficina1_idx ON coche_en_oficina (id_oficina ASC);
 
-CREATE INDEX fk_coche_has_oficina_coche1_idx ON coche_en_oficina (id_coche ASC);
+CREATE INDEX IF NOT EXISTS fk_coche_has_oficina_coche1_idx ON coche_en_oficina (id_coche ASC);
 
 
 -- documento_has_pago_tarifa
+DROP TABLE IF EXISTS ocumento_pago_has_tarifa CASCADE;
 CREATE TABLE IF NOT EXISTS documento_pago_has_tarifa (
    id_documento INT NOT NULL,
    id_tarifa  INT NOT NULL,
@@ -362,12 +399,13 @@ CREATE TABLE IF NOT EXISTS documento_pago_has_tarifa (
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_documento_pago_has_tarifa_tarifa1_idx ON documento_pago_has_tarifa (id_tarifa ASC);
+CREATE INDEX IF NOT EXISTS fk_documento_pago_has_tarifa_tarifa1_idx ON documento_pago_has_tarifa (id_tarifa ASC);
 
-CREATE INDEX fk_documento_pago_has_tarifa_documento_pago1_idx ON documento_pago_has_tarifa (id_documento ASC);
+CREATE INDEX IF NOT EXISTS fk_documento_pago_has_tarifa_documento_pago1_idx ON documento_pago_has_tarifa (id_documento ASC);
 
 
 -- reserva_has_tarifa
+DROP TABLE IF EXISTS reserva_has_tarifa CASCADE;
 CREATE TABLE IF NOT EXISTS reserva_has_tarifa (
    id_reserva INT NOT NULL,
    id_tarifa INT NOT NULL,
@@ -384,12 +422,13 @@ CREATE TABLE IF NOT EXISTS reserva_has_tarifa (
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_reserva_has_tarifa_tarifa1_idx ON reserva_has_tarifa (id_tarifa ASC);
+CREATE INDEX IF NOT EXISTS fk_reserva_has_tarifa_tarifa1_idx ON reserva_has_tarifa (id_tarifa ASC);
 
-CREATE INDEX fk_reserva_has_tarifa_reserva1_idx ON reserva_has_tarifa (id_reserva ASC);
+CREATE INDEX IF NOT EXISTS fk_reserva_has_tarifa_reserva1_idx ON reserva_has_tarifa (id_reserva ASC);
 
 
 -- documento_pago_has_descuento
+DROP TABLE IF EXISTS documento_pago_has_descuento CASCADE;
 CREATE TABLE IF NOT EXISTS documento_pago_has_descuento (
    id_documento INT NOT NULL,
    codigo_descuento VARCHAR(10) NOT NULL,
@@ -406,12 +445,13 @@ CREATE TABLE IF NOT EXISTS documento_pago_has_descuento (
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_documento_pago_has_descuento_descuento1_idx ON documento_pago_has_descuento (codigo_descuento ASC);
+CREATE INDEX IF NOT EXISTS fk_documento_pago_has_descuento_descuento1_idx ON documento_pago_has_descuento (codigo_descuento ASC);
 
-CREATE INDEX fk_documento_pago_has_descuento_documento_descuento1_idx ON documento_pago_has_descuento (id_documento ASC);
+CREATE INDEX IF NOT EXISTS fk_documento_pago_has_descuento_documento_descuento1_idx ON documento_pago_has_descuento (id_documento ASC);
 
 
 -- documento_pago_has_extra
+DROP TABLE IF EXISTS documento_pago_has_extra CASCADE;
 CREATE TABLE IF NOT EXISTS documento_pago_has_extra (
    id_documento INT NOT NULL,
    id_extra  INT NOT NULL,
@@ -428,12 +468,13 @@ CREATE TABLE IF NOT EXISTS documento_pago_has_extra (
      ON UPDATE NO ACTION
 );
 
-CREATE INDEX fk_documento_pago_has_extra_extra1_idx ON documento_pago_has_extra (id_extra ASC);
+CREATE INDEX IF NOT EXISTS fk_documento_pago_has_extra_extra1_idx ON documento_pago_has_extra (id_extra ASC);
 
-CREATE INDEX fk_documento_pago_has_extra_documento_pago1_idx ON documento_pago_has_extra (id_documento ASC);
+CREATE INDEX IF NOT EXISTS fk_documento_pago_has_extra_documento_pago1_idx ON documento_pago_has_extra (id_documento ASC);
 
 
 -- modelo_has_tarifa
+DROP TABLE IF EXISTS modelo_has_tarifa CASCADE;
 CREATE TABLE IF NOT EXISTS modelo_has_tarifa (
    modelo VARCHAR(80) NOT NULL,
    categoria categoria NOT NULL,
@@ -452,9 +493,9 @@ CREATE TABLE IF NOT EXISTS modelo_has_tarifa (
 );
 
 
-CREATE INDEX fk_modelo_has_tarifa_tarifa1_idx ON modelo_has_tarifa (id_tarifa ASC);
+CREATE INDEX IF NOT EXISTS fk_modelo_has_tarifa_tarifa1_idx ON modelo_has_tarifa (id_tarifa ASC);
 
-CREATE INDEX fk_modelo_has_tarifa_modelo1_idx ON modelo_has_tarifa (modelo ASC, categoria ASC);
+CREATE INDEX IF NOT EXISTS fk_modelo_has_tarifa_modelo1_idx ON modelo_has_tarifa (modelo ASC, categoria ASC);
 
 
 """

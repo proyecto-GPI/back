@@ -10,10 +10,10 @@ from typing import Optional, Literal
 from sqlalchemy.orm import sessionmaker
 
 import models
-
 from database import engine
-
 import json
+
+from global_variables import id_user
 
 router1 = APIRouter()
 router2 = APIRouter()
@@ -21,7 +21,6 @@ router3 = APIRouter()
 router4 = APIRouter()
 
 # Aquí defines tus endpoints
-
 class UserLogin(BaseModel):
     correo: str
     contrasenya: str
@@ -61,7 +60,9 @@ async def login(login_data: UserLogin):
 
     try:
         # Decodificar el contenido JSON
-        return json.loads(response.content.decode())
+        response_data = json.loads(response.content.decode())
+        id_user = response_data.get("id")
+        return response_data
     
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Respuesta inválida del servidor de autenticación")
@@ -76,19 +77,19 @@ async def rlogin(usuario_data: dict):  # Recibe un diccionario con los datos del
         print("Datos recibidos:", usuario_data)
         
         # Validar que el diccionario tenga los campos necesarios
-        required_fields = ['email', 'password']
+        required_fields = ['correo', 'contrasenya']
         for field in required_fields:
             if field not in usuario_data:
                 raise HTTPException(status_code=400, detail=f"El campo {field} es requerido.")
  
         # Buscar al usuario en la base de datos
-        usuario_db = session.query(models.Usuario).filter(models.Usuario.correo == usuario_data['email']).first()
+        usuario_db = session.query(models.Usuario).filter(models.Usuario.correo == usuario_data['correo']).first()
 
         if not usuario_db:
             raise HTTPException(status_code=404, detail="El email del usuario es incorrecto.")
         
         # Validar la contraseña directamente como texto plano (solo para pruebas)
-        if usuario_data['password'] != usuario_db.password:
+        if usuario_data['contrasenya'] != usuario_db.contrasenya:
             raise HTTPException(status_code=404, detail="Contraseña incorrecta.")
  
         print(f"Sesión iniciada correctamente id : {usuario_db.id}")
