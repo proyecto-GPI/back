@@ -13,7 +13,6 @@ import models
 from database import engine
 import json
 
-from global_variables import id_user
 
 router1 = APIRouter()
 router2 = APIRouter()
@@ -26,7 +25,10 @@ class UserLogin(BaseModel):
     contrasenya: str
 
 class UserID(BaseModel):
-    id: str
+    id_user: str = None
+
+# Variable global para mantener el estado
+global_user_id_instance = UserID()
 
 class UserRegister(BaseModel):
     id: str
@@ -41,11 +43,8 @@ class register_state(BaseModel):
 
 
 
-
-
 @router1.post("/api/login")
 async def login(login_data: UserLogin):
-
     # Convertir los datos del modelo Pydantic a un diccionario
     login_dict = login_data.dict()
     url = "http://127.0.0.1:8000/api/rlogin"
@@ -61,11 +60,14 @@ async def login(login_data: UserLogin):
     try:
         # Decodificar el contenido JSON
         response_data = json.loads(response.content.decode())
-        id_user = response_data.get("id")
+        id_user = response_data.get('id')
+        print("ID actualizado:", id_user)
+        global_user_id_instance.id_user = id_user
         return response_data
     
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="Respuesta inválida del servidor de autenticación")
+
 
 
 @router2.post("/api/rlogin")
