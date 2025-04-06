@@ -106,7 +106,7 @@ for c in coches:
         print(f"Coche con ID {c.id} ya existe, se omite.")
 
 
-reserva_prueba = Reserva(
+reserva_prueba1 = Reserva(
     id_reserva=1,
     oficina_recogida_propuesta=1,
     oficina_devolucion_propuesta=2,
@@ -123,8 +123,27 @@ reserva_prueba = Reserva(
     id_oficina_devolucion_real=None,
     id_reserva_padre=None
 )
+
+reserva_prueba2 = Reserva(
+    id_reserva=2,
+    oficina_recogida_propuesta=3,
+    oficina_devolucion_propuesta=4,
+    fecha_recogida_propuesta=date(2024, 5, 3),
+    fecha_devolucion_propuesta=date(2024, 5, 15),
+    fecha_confirmacion=date(2024, 5, 1),
+    importe_final_previsto=Decimal("350.00"),
+    num_tarjeta="8765432112345678",
+    fecha_recogida_real=None,
+    fecha_devolucion_real=None,
+    id_usuario="12345678A",
+    id_coche=1,
+    id_oficina_recogida_real=None,
+    id_oficina_devolucion_real=None,
+    id_reserva_padre=None
+)
 try:
-    db.add(reserva_prueba)
+    db.add(reserva_prueba1)
+    db.add(reserva_prueba2)
     db.commit()
 except IntegrityError:
         db.rollback()

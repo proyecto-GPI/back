@@ -11,10 +11,13 @@ from sqlalchemy.orm import sessionmaker
 import models
 import json
 from database import engine
+from sqlalchemy.orm import joinedload
 
 
 router7 = APIRouter()
 router8 = APIRouter()
+
+router9 = APIRouter()
 
 class Reserve(BaseModel):
     id_user: str #Lo proporciona front
@@ -69,6 +72,7 @@ async def rreserve(reserve_data: dict):  # Recibe un diccionario con los datos d
         if not oficina_recogida or not coche:
             raise HTTPException(status_code=404, detail="Oficina o coche no encontrado")
 
+        from datetime import datetime
 
         # Crear la nueva reserva
         nueva_reserva = models.Reserva(
@@ -124,3 +128,65 @@ async def rreserve(reserve_data: dict):  # Recibe un diccionario con los datos d
         if session:
             session.close()
     
+
+
+
+@router9.get("/get_reservas_usuario/{id_usuario}")
+async def get_reservas_usuario(id_usuario: str):
+    session = None
+    try:
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
+        reservas = session.query(models.Reserva)\
+            .options(
+                joinedload(models.Reserva.reserva_recoge_oficina),
+                joinedload(models.Reserva.reserva_devuelve_oficina)
+            )\
+            .filter(models.Reserva.id_usuario == id_usuario)\
+            .all()
+
+        if not reservas:
+            raise HTTPException(status_code=404, detail="No reservas found for this user.")
+
+        
+        reservas_list = []
+
+        for reserva in reservas:
+            oficina_recogida_propuesta = session.query(models.Oficina).filter(models.Oficina.id_oficina == reserva.oficina_recogida_propuesta).first()
+            oficina_devolucion_propuesta = session.query(models.Oficina).filter(models.Oficina.id_oficina == reserva.oficina_devolucion_propuesta).first()
+            oficina_recogida_real = session.query(models.Oficina).filter(models.Oficina.id_oficina == reserva.id_oficina_recogida_real).first()
+            oficina_devolucion_real = session.query(models.Oficina).filter(models.Oficina.id_oficina == reserva.id_oficina_devolucion_real).first()
+
+            reservas_list.append({
+                "id_reserva": reserva.id_reserva,
+                "id_oficina_recogida_propuesta": oficina_recogida_propuesta.id_oficina if oficina_recogida_propuesta else None,
+                "id_oficina_devolucion_propuesta": oficina_devolucion_propuesta.id_oficina if oficina_devolucion_propuesta else None,
+                "direccion_oficina_recogida_propuesta": oficina_recogida_propuesta.direccion if oficina_recogida_propuesta else None,
+                "direccion_oficina_devolucion_propuesta": oficina_devolucion_propuesta.direccion if oficina_devolucion_propuesta else None,
+                "fecha_recogida_propuesta": reserva.fecha_recogida_propuesta,
+                "fecha_devolucion_propuesta": reserva.fecha_devolucion_propuesta,
+                "fecha_confirmacion": reserva.fecha_confirmacion,
+                "importe_final_previsto": float(reserva.importe_final_previsto),
+                "num_tarjeta": reserva.num_tarjeta,
+                "fecha_recogida_real": reserva.fecha_recogida_real,
+                "fecha_devolucion_real": reserva.fecha_devolucion_real,
+                "id_usuario": reserva.id_usuario,
+                "id_coche": reserva.id_coche,
+                "id_oficina_recogida_real": reserva.id_oficina_recogida_real,
+                "id_oficina_devolucion_real": reserva.id_oficina_devolucion_real,
+                "direccion_oficina_recogida_real": oficina_recogida_real.direccion if oficina_recogida_real else None,
+                "direccion_oficina_devolucion_real": oficina_devolucion_real.direccion if oficina_devolucion_real else None,
+                "id_reserva_padre": reserva.id_reserva_padre
+            })
+
+
+        return reservas_list
+
+    except Exception as e:
+        print(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+
+    finally:
+        if session:
+            session.close()
