@@ -273,9 +273,7 @@ CREATE TABLE IF NOT EXISTS extra(
    descripcion  VARCHAR(45) NOT NULL UNIQUE
 );
 
--- -----------------------------------------------------
--- Table `AutoVeloz`.`historico_precio`
--- -----------------------------------------------------
+-- historico_precio
 DROP TABLE IF EXISTS historico_precio CASCADE;
 CREATE TABLE IF NOT EXISTS historico_precio (
    fecha_establecido DATE NOT NULL,
@@ -496,6 +494,58 @@ CREATE TABLE IF NOT EXISTS modelo_has_tarifa (
 CREATE INDEX IF NOT EXISTS fk_modelo_has_tarifa_tarifa1_idx ON modelo_has_tarifa (id_tarifa ASC);
 
 CREATE INDEX IF NOT EXISTS fk_modelo_has_tarifa_modelo1_idx ON modelo_has_tarifa (modelo ASC, categoria ASC);
+
+
+
+-- Trigger y funcion asociada para actualizar la tabla estado_coche dependiendo de estado_reserva 
+
+CREATE OR REPLACE FUNCTION actualizar_estado_coche()
+RETURNS TRIGGER AS $$
+DECLARE
+  coche_info RECORD;
+BEGIN
+  -- Obtenemos los datos de la reserva
+  SELECT id_coche, fecha_recogida_propuesta, fecha_devolucion_propuesta, fecha_devolucion_real
+  INTO coche_info
+  FROM reserva
+  WHERE id_reserva = NEW.id_reserva;
+
+  -- Coche no libre si la reserva está 'pendiente'
+  IF NEW.id_estado  = 'pendiente' THEN
+    -- Insertamos un nuevo registro para reflejar que el coche no está libre
+    INSERT INTO estado_coche (id_coche, fecha_desde, fecha_hasta, libre)
+    VALUES (
+      coche_info.id_coche,
+      coche_info.fecha_recogida_propuesta,
+      coche_info.fecha_devolucion_propuesta,
+      FALSE
+    );
+
+
+  -- Coche libre si finaliza la reserva
+  ELSIF NEW.id_estado = 'finalizada' THEN
+    -- Insertamos un nuevo registro para reflejar que el coche está libre
+    INSERT INTO estado_coche (id_coche, fecha_desde, fecha_hasta, libre)
+    VALUES (
+      coche_info.id_coche,
+      COALESCE(coche_info.fecha_devolucion_real, coche_info.fecha_devolucion_propuesta), -- Usamos la fecha real de devolución si está disponible
+      NULL,                                
+      TRUE
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+CREATE TRIGGER trigger_estado_reserva
+AFTER INSERT OR UPDATE ON estado_reserva
+FOR EACH ROW
+EXECUTE FUNCTION actualizar_estado_coche();
+
+
 
 
 """
