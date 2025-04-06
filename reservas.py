@@ -69,7 +69,6 @@ async def rreserve(reserve_data: dict):  # Recibe un diccionario con los datos d
         if not oficina_recogida or not coche:
             raise HTTPException(status_code=404, detail="Oficina o coche no encontrado")
 
-        from datetime import datetime
 
         # Crear la nueva reserva
         nueva_reserva = models.Reserva(
