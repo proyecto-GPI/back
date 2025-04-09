@@ -19,13 +19,16 @@ router8 = APIRouter()
 
 router9 = APIRouter()
 
+
+
 class Reserve(BaseModel):
-    id_user: str #Lo proporciona front
+    id_user: str
     id_oficina: int
     id_coche: int
     fecha_recogida: str
     fecha_devolucion: str
     num_tarjeta: str
+
 
 
 @router7.post("/api/reserve")
@@ -74,23 +77,26 @@ async def rreserve(reserve_data: dict):  # Recibe un diccionario con los datos d
 
         from datetime import datetime
 
+        print("Ok línea 77")
         # Crear la nueva reserva
         nueva_reserva = models.Reserva(
             oficina_recogida_propuesta=reserve_data['id_oficina'],
             oficina_devolucion_propuesta=reserve_data['id_oficina'],  # Usa la misma oficina por defecto
-            fecha_recogida_propuesta=datetime.strptime(reserve_data['fecha_recogida'], "%Y-%m-%d").date(),
-            fecha_devolucion_propuesta=datetime.strptime(reserve_data['fecha_devolucion'], "%Y-%m-%d").date(),
+            fecha_recogida_propuesta=datetime.strptime(reserve_data['fecha_recogida'], "%Y-%m-%d %H:%M:%S").date(),
+            fecha_devolucion_propuesta=datetime.strptime(reserve_data['fecha_devolucion'], "%Y-%m-%d %H:%M:%S").date(),
             fecha_confirmacion=datetime.now().date(),  # Fecha actual en formato YYYY-MM-DD
             importe_final_previsto=100.0,  # Valor por defecto, puedes calcular según lógica
             num_tarjeta=reserve_data['num_tarjeta'],  # Validado previamente como numérico
-            fecha_recogida_real=datetime.strptime(reserve_data['fecha_recogida'], "%Y-%m-%d").date(),
-            fecha_devolucion_real=datetime.strptime(reserve_data['fecha_devolucion'], "%Y-%m-%d").date(),
+            fecha_recogida_real=datetime.strptime(reserve_data['fecha_recogida'], "%Y-%m-%d %H:%M:%S").date(),
+            fecha_devolucion_real=datetime.strptime(reserve_data['fecha_devolucion'], "%Y-%m-%d %H:%M:%S").date(),
             id_usuario=reserve_data['id_user'],
             id_coche=reserve_data['id_coche'],
             id_oficina_recogida_real=reserve_data['id_oficina'],
             id_oficina_devolucion_real=reserve_data['id_oficina']
         )
 
+        print("Ok línea 95")
+        
         # Añadir la nueva reserva a la sesión y guardar en la base de datos
         session.add(nueva_reserva)
         session.commit()

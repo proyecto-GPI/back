@@ -107,8 +107,8 @@ CREATE TABLE IF NOT EXISTS oficina (
 
 -- reserva
 DROP TABLE IF EXISTS reserva CASCADE;
-CREATE TABLE IF NOT EXISTS reserva (
-   id_reserva SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS reserva  (
+   id_reserva INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
    oficina_recogida_propuesta INT NOT NULL,
    oficina_devolucion_propuesta INT NOT NULL,
    fecha_recogida_propuesta DATE NOT NULL,

@@ -2,8 +2,8 @@
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime, timedelta, date
-from models import Oficina, Usuario, Reserva, Modelo, Coche, Base
+from datetime import datetime, timedelta, date, datetime
+from models import Oficina, Usuario, Reserva, Modelo, Coche, UbicadoEn, Base
 from sqlalchemy import delete
 from decimal import Decimal
 from sqlalchemy.exc import IntegrityError
@@ -34,6 +34,10 @@ db.execute(stmt)
 db.commit()
 
 stmt = delete(Modelo)
+db.execute(stmt)
+db.commit()
+
+stmt = delete(UbicadoEn)
 db.execute(stmt)
 db.commit()
 
@@ -107,7 +111,7 @@ for c in coches:
 
 
 reserva_prueba1 = Reserva(
-    id_reserva=1,
+   
     oficina_recogida_propuesta=1,
     oficina_devolucion_propuesta=2,
     fecha_recogida_propuesta=date(2024, 4, 10),
@@ -125,7 +129,7 @@ reserva_prueba1 = Reserva(
 )
 
 reserva_prueba2 = Reserva(
-    id_reserva=2,
+   
     oficina_recogida_propuesta=3,
     oficina_devolucion_propuesta=4,
     fecha_recogida_propuesta=date(2024, 5, 3),
@@ -150,6 +154,34 @@ except IntegrityError:
         print(f"Reserva con ID {c.id} ya existe, se omite.")
 
 print("Reserva de prueba creada con éxito.")
+
+
+
+ubicadoPrueba1 = UbicadoEn(
+
+     fecha_hasta = date(2025, 5, 3),
+     fecha_desde = date(2000, 5, 3),
+     id_coche = 1,
+     id_oficina = 1
+)
+
+ubicadoPrueba2 = UbicadoEn(
+     
+
+     fecha_hasta = datetime(2025, 5, 3),
+     fecha_desde = datetime(2000, 5, 3),
+     id_coche = 2,
+     id_oficina = 1
+)
+
+
+try:
+    db.add(ubicadoPrueba1)
+    db.add(ubicadoPrueba2)
+    db.commit()
+except IntegrityError:
+        db.rollback()
+        print(f"UbicadoEn con ID {c.id} ya existe, se omite.")
 
 print("✅ Datos de prueba creados correctamente.")
 

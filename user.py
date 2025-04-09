@@ -8,6 +8,7 @@ from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional, Literal 
 from sqlalchemy.orm import sessionmaker
+from datetime import datetime, timedelta, date, datetime
 
 import models
 from database import engine
@@ -128,10 +129,10 @@ async def okregister(register_data: UserRegister):  # Recibe un diccionario con 
         session = Session()
         nuevo_usuario = models.Usuario(
             id=register_data.id,
-            nombre=register_data.name,
-            correo=register_data.email,
-            contrasenya=register_data.password,  # ⚠️ Para pruebas, en texto plano
-            tipo_cliente=register_data.customer_type,
+            nombre=register_data.nombre,
+            correo=register_data.correo,
+            contrasenya=register_data.contrasenya,  # ⚠️ Para pruebas, en texto plano
+            tipo_cliente=register_data.tipo_cliente,
             fecha_registro=date.today()  # ⬅️ Añade esto si es requerido y no viene en register_data
         )
 
