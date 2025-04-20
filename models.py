@@ -99,6 +99,8 @@ class Oficina(Base):
   __tablename__= 'oficina'
   id_oficina = Column(Integer, primary_key=True, nullable=False)
   direccion = Column(String(512), nullable=False, unique=True)
+  nombre = Column(String(80), nullable=False)
+  ciudad = Column(String(80), nullable=False)
 
   ubicaciones = relationship("UbicadoEn", back_populates="oficina")
   oficina_pagado_en_documento_pago = relationship("Documento_pago", back_populates="documento_pago_pagado_en_oficina")

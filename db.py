@@ -101,7 +101,9 @@ COMMENT ON COLUMN coche.tipo_cambio IS '1 si libre. 0 si ocupado';
 DROP TABLE IF EXISTS oficina CASCADE;
 CREATE TABLE IF NOT EXISTS oficina (
    id_oficina SERIAL PRIMARY KEY,
-   direccion  VARCHAR(512) NOT NULL UNIQUE
+   direccion  VARCHAR(512) NOT NULL UNIQUE,
+   nombre VARCHAR(80) NOT NULL,
+   ciudad VARCHAR(80) NOT NULL
 );
  
 
