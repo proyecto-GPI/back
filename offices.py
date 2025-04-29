@@ -6,9 +6,10 @@ from pydantic import BaseModel
 
 router5 = APIRouter()
 router10 = APIRouter()
+router11 = APIRouter()
 
-class Oficina(BaseModel):
-    id_oficina: str
+class Oficina_create(BaseModel):
+    id_oficina: int
     nombre: str
     direccion: str
     ciudad: str
@@ -19,7 +20,7 @@ async def get_all_offices(db: Session = Depends(get_db)):
     return oficinas
 
 @router10.post("/api/add_oficinas")
-async def add_offices(oficina: Oficina, db: Session = Depends(get_db)):
+async def add_offices(oficina: Oficina_create, db: Session = Depends(get_db)):
     #Comprobar oficina existe
     oficina_existente = db.query(Oficina).filter(Oficina.id_oficina == oficina.id_oficina).first()
     if oficina_existente:
@@ -35,5 +36,19 @@ async def add_offices(oficina: Oficina, db: Session = Depends(get_db)):
     db.add(nueva_oficina)
     db.commit()
     db.refresh(nueva_oficina)
-    return get_all_offices()
+    return db.query(Oficina).all() 
+
+    
+@router11.delete("/api/delete_oficinas/{id_oficina}")
+async def delete_offices(id_oficina: int, db: Session = Depends(get_db)):
+    oficina = db.query(Oficina).filter(Oficina.id_oficina == id_oficina).first()
+    
+    if oficina:
+        db.delete(oficina)
+        db.commit()
+        return {"detail": "Office deleted successfully"}
+    else:
+        raise HTTPException(status_code=404, detail="Office not found")
+
+    
     
