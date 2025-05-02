@@ -66,8 +66,17 @@ user2 = Usuario(
     fecha_registro=date.today()
 )
 
+user3 = Usuario(
+  id= "ADMIN1234",
+  nombre="El Admin",
+  correo="admin@admin.com",
+  contrasenya="securepassword3",
+  tipo_cliente="admin",
+  fecha_registro=date.today()
+)
+
 # Agregar a la base de datos
-db.add_all([office1, office2, office3, office4,  user1, user2])
+db.add_all([office1, office2, office3, office4,  user1, user2, user3])
 db.commit()
 
 # Refrescar para obtener IDs generados
@@ -75,6 +84,7 @@ db.refresh(office1)
 db.refresh(office2)
 db.refresh(user1)
 db.refresh(user2)
+db.refresh(user3)
 
 
 modelos = [

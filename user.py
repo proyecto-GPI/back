@@ -25,11 +25,6 @@ class UserLogin(BaseModel):
     correo: str
     contrasenya: str
 
-class UserID(BaseModel):
-    id_user: str = None
-
-# Variable global para mantener el estado
-global_user_id_instance = UserID()
 
 class UserRegister(BaseModel):
     id: str
@@ -62,8 +57,9 @@ async def login(login_data: UserLogin):
         # Decodificar el contenido JSON
         response_data = json.loads(response.content.decode())
         id_user = response_data.get('id')
-        print("ID actualizado:", id_user)
-        global_user_id_instance.id_user = id_user
+        tipo_user = response_data.get("tipo_cliente")
+        print("ID :", id_user)
+        print("Tipo Cliente:", tipo_user)
         return response_data
     
     except json.JSONDecodeError:
@@ -96,7 +92,7 @@ async def rlogin(usuario_data: dict):  # Recibe un diccionario con los datos del
             raise HTTPException(status_code=404, detail="Contraseña incorrecta.")
  
         print(f"Sesión iniciada correctamente id : {usuario_db.id}")
-        return {"detail": "Sesión iniciada correctamente", "id": usuario_db.id}
+        return {"detail": "Sesión iniciada correctamente", "id": usuario_db.id, "tipo_cliente": usuario_db.tipo_cliente}
     except Exception as e:
         print("Error inesperado:", e)
         raise HTTPException(status_code=500, detail="Error interno al iniciar sesión")
