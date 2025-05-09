@@ -21,9 +21,8 @@ enum_types = [
     ("categoria", "ENUM('alta', 'media', 'baja')"),
     ("tipo_cliente", "ENUM('negocio', 'particular', 'admin')"),
     ("tipo_cambio", "ENUM('m', 'a')"),
-    ("tipo_tarifa", "ENUM('tarifa_cd', 'tarifa_ld')"),
-    ("tipo_tarifa_cd", "ENUM('dia_km', 'km', 'dia', 'semana', 'fin_semana')"),
-    ("periodo", "ENUM('1', '2', '3')"),
+    ("tipo_tarifa", "ENUM('diaria', 'diaria_ilimitada','semanal','fin_de_semana','mensual')"),
+    ("periodo", "ENUM('0','1', '2', '3')"),
     ("forma_pago", "ENUM('efectivo', 'tarjeta')"),
     ("estado", "ENUM('pendiente', 'en_curso', 'finalizada', 'modificada', 'cancelada')")
 ]
@@ -172,24 +171,21 @@ COMMENT ON COLUMN reserva.oficina_devolucion_propuesta IS  'Análogo a la de rec
 -- tarifa
 DROP TABLE IF EXISTS tarifa CASCADE;
 CREATE TABLE IF NOT EXISTS tarifa (
-   id_tarifa SERIAL PRIMARY KEY,
-   tipo_tarifa tipo_tarifa NOT NULL
-);
+  id_tarifa SERIAL PRIMARY KEY,
+  tipo_tarifa tipo_tarifa NOT NULL,
+  periodo periodo NOT NULL,
+  precio_por_unidad FLOAT NOT NULL,
+  modelo VARCHAR(80) NOT NULL,
+  categoria categoria NOT NULL,
 
+  -- Clave foránea compuesta
+  CONSTRAINT fk_tarifa_modelo
+    FOREIGN KEY (modelo, categoria)
+    REFERENCES modelo(modelo, categoria),
 
--- tarifa_cd
-DROP TABLE IF EXISTS tarifa_cd CASCADE;
-CREATE TABLE IF NOT EXISTS tarifa_cd (
-   id_tarifa INT NOT NULL,
-   tipo_tarifa_cd tipo_tarifa_cd NOT NULL,
-   precio DECIMAL(10,2) NOT NULL,
-   periodo periodo NOT NULL,
-   PRIMARY KEY (id_tarifa, periodo),
-   CONSTRAINT fk_tarifa_cd_tarifa1
-     FOREIGN KEY (id_tarifa)
-     REFERENCES tarifa(id_tarifa)
-     ON DELETE NO ACTION
-     ON UPDATE NO ACTION
+  -- Restricción de unicidad en combinación
+  CONSTRAINT uix_tarifa_combinada
+    UNIQUE (modelo, categoria, tipo_tarifa, periodo)  
 );
 
 
@@ -209,19 +205,6 @@ CREATE TABLE IF NOT EXISTS estado_coche(
 );
 
 CREATE INDEX IF NOT EXISTS fk_estado_coche_coche1_idx ON estado_coche (id_coche ASC);
-
-
--- tarifa_ld
-DROP TABLE IF EXISTS tarifa_ld CASCADE;
-CREATE TABLE IF NOT EXISTS tarifa_ld(
-   id_tarifa SERIAL PRIMARY KEY,
-   precio DECIMAL(10,2) NOT NULL,
-   CONSTRAINT fk_tarifa_ld_tarifa1
-     FOREIGN KEY (id_tarifa)
-     REFERENCES tarifa(id_tarifa)
-     ON DELETE NO ACTION
-     ON UPDATE NO ACTION
-);
 
 
 -- 

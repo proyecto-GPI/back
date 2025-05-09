@@ -1,6 +1,6 @@
 # models.py
 
-from sqlalchemy import String, Integer, Column, ForeignKey, Enum, TIMESTAMP, DateTime, CheckConstraint, DECIMAL, Text, Boolean, Table, Double, Float, Date, PrimaryKeyConstraint, ForeignKeyConstraint, Index, Numeric
+from sqlalchemy import String, Integer, Column, ForeignKey, Enum, TIMESTAMP, DateTime, CheckConstraint, DECIMAL, Text, Boolean, Table, Double, Float, Date, PrimaryKeyConstraint, ForeignKeyConstraint, Index, Numeric, UniqueConstraint
 from database import Base
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -46,6 +46,7 @@ modelo_tarifa = Table(
         name="fk_modelo_tarifa_modelo"
     )
 )
+
 
 class Modelo (Base):
   __tablename__= 'modelo'
@@ -252,32 +253,28 @@ reserva_tiene_coche = relationship("Coche", back_populates="coche_tiene_reserva"
 class Tarifa (Base):
   __tablename__ = 'tarifa'
 
-  id_tarifa = Column(Integer, primary_key=True, nullable=False)
-  tipo_tarifa = Column(Enum('dia_km', 'km', 'dia', 'semana', 'fin_semana', name = "tipo_tarifa"), nullable=False)
+  id_tarifa = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+  tipo_tarifa = Column(Enum(
+      'diaria',
+      'diaria_ilimitada',
+      'semanal',
+      'fin_de_semana',
+      'mensual',
+       name = "tipo_tarifa"), nullable=False)
+  
+  periodo = Column(Enum(
+    '0', #para la de de larga_duracion = mensual
+    '1',
+    '2',
+    '3',
+      name = "periodo"), nullable=False)
+
+  precio_por_unidad = Column(Float, nullable=False) #puede ser por dia, por semana, 1 finde, por mes
 
   tarifa_tiene_modelo = relationship("Modelo", secondary=modelo_tarifa, back_populates="modelo_tiene_tarifa")
   calculado_por = relationship("CalculadoPor", back_populates="tarifa")
 
   
-
-
-class Tarifa_cd (Base):
-  __tablename__ = 'tarifa_cd'
-  
-  id_tarifa = Column(Integer, nullable=False)  
-  tipo_tarifa_cd = Column(Enum('dia_km', 'km', 'dia', 'semana', 'fin_semana', name = "tipo_tarifa_cd" ), nullable=False)  
-  precio = Column(Numeric(10, 2), nullable=False)
-  periodo = Column(Enum('1', '2', '3', name = "periodo"), nullable=False)
-  
-  __table_args__ = (
-       PrimaryKeyConstraint('id_tarifa', 'periodo'),
-       ForeignKeyConstraint(
-           ['id_tarifa'],
-           ['tarifa.id_tarifa'],
-           ondelete='NO ACTION',
-           onupdate='NO ACTION'
-       )
-   )
 
 
 class Estado_coche (Base):
@@ -296,14 +293,6 @@ class Estado_coche (Base):
 
 
   estado_coche_tiene_coche = relationship("Coche", back_populates="coche_tiene_estado_coche")
-
-
-class Tarifa_ld (Base):
-  __tablename__ = 'tarifa_ld'
-  
-  id_tarifa = Column(Integer, ForeignKey('tarifa.id_tarifa', ondelete='NO ACTION', onupdate='NO ACTION'), primary_key=True, nullable=False)  
-  precio = Column(Numeric(10, 2), nullable=False)
-  
 
 
 

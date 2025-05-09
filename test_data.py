@@ -3,11 +3,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta, date, datetime
-from models import Oficina, Usuario, Reserva, Modelo, Coche, UbicadoEn, Base
+from models import Oficina, Usuario, Reserva, Modelo, Coche, UbicadoEn, Base, Tarifa
 from sqlalchemy import delete
 from decimal import Decimal
 from sqlalchemy.exc import IntegrityError
 
+#MIRAR LINEA 173
 
 # Configuración de la base de datos
 DATABASE_URL = "postgresql://autoveloz_creator:autovelozGPI@localhost:5432/autoveloz"
@@ -34,6 +35,10 @@ db.execute(stmt)
 db.commit()
 
 stmt = delete(Modelo)
+db.execute(stmt)
+db.commit()
+
+stmt = delete(Tarifa)
 db.execute(stmt)
 db.commit()
 
@@ -165,7 +170,7 @@ except IntegrityError:
 
 print("Reserva de prueba creada con éxito.")
 
-
+#FALTA AGREGAR TARIFAS DE EJEMPLO
 
 ubicadoPrueba1 = UbicadoEn(
 
