@@ -170,7 +170,22 @@ except IntegrityError:
 
 print("Reserva de prueba creada con éxito.")
 
-#FALTA AGREGAR TARIFAS DE EJEMPLO
+#TARIFAS DE EJEMPLO
+tarifas = [
+    Tarifa(id_tarifa=1, tipo_tarifa="diaria", periodo="0", precio_por_unidad=Decimal("50.00")),
+    Tarifa(id_tarifa=2, tipo_tarifa="diaria_ilimitada", periodo="1", precio_por_unidad=Decimal("70.00")),
+    Tarifa(id_tarifa=3, tipo_tarifa="semanal", periodo="2", precio_por_unidad=Decimal("300.00")),
+    Tarifa(id_tarifa=4, tipo_tarifa="fin_de_semana", periodo="3", precio_por_unidad=Decimal("120.00")),
+    Tarifa(id_tarifa=5, tipo_tarifa="mensual", periodo="0", precio_por_unidad=Decimal("1000.00")) 
+]
+for t in tarifas:
+    try:
+        db.add(t)
+        db.commit()
+        print(f"Tarifa con ID {t.id_tarifa} creada.")
+    except IntegrityError:
+        db.rollback()
+        print(f"Tarifa con ID {t.id_tarifa} ya existe, se omite.")
 
 ubicadoPrueba1 = UbicadoEn(
 

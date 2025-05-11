@@ -4,9 +4,11 @@ from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 from database import get_db
 from models import Tarifa, Modelo, modelo_tarifa
+from schemas import TarifaOut
+from typing import List
 
 router12= APIRouter()
-
+router14= APIRouter()
 
 # Función auxiliar para calcular el periodo
 def obtener_periodo(fecha_inicio: datetime, fecha_fin: datetime):
@@ -86,3 +88,10 @@ async def get_tarifas(
         for tarifa, u in tarifas
     ]
 
+@router14.get("/api/tarifas/all", response_model=List[TarifaOut])
+async def get_all_tarifas(db: Session = Depends(get_db)):
+    """
+    Devuelve **todas** las tarifas registradas, sin aplicar filtros
+    de modelo, gama ni temporada.
+    """
+    return db.query(Tarifa).all()

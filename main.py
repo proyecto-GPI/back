@@ -24,9 +24,9 @@ app.add_middleware(
 
 from user import router1, router2, router3, router4
 from offices import router5, router10, router11
-from availability import router6
+from availability import router6, router13
 from reservas import router7, router8, router9
-from tarifas import router12
+from tarifas import router12, router14
 
 app.include_router(router1)
 app.include_router(router2)
@@ -38,9 +38,11 @@ app.include_router(router10)
 app.include_router(router11)
 
 app.include_router(router6)
+app.include_router(router13)
 
 app.include_router(router7)
 app.include_router(router8)
 app.include_router(router9)
 
 app.include_router(router12)
+app.include_router(router14)

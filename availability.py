@@ -8,6 +8,8 @@ from schemas import CocheOut
 
 
 router6= APIRouter()
+router13= APIRouter()
+
 @router6.get("/api/availability", response_model=list[CocheOut])
 async def get_cars_availability(
     id_oficina: int,
@@ -49,3 +51,11 @@ async def get_cars_availability(id_oficina:int, fecha_inicio: str, fecha_fin:str
     return dict(coches_id)
 
 """
+
+@router13.get("/api/coches", response_model=List[CocheOut])
+async def get_all_coches(db: Session = Depends(get_db)):
+    """
+    Devuelve **todos** los coches registrados en la base de datos,
+    sin aplicar filtros de disponibilidad ni de oficina.
+    """
+    return db.query(Coche).all()
