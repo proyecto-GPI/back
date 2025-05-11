@@ -171,6 +171,7 @@ except IntegrityError:
 print("Reserva de prueba creada con éxito.")
 
 #TARIFAS DE EJEMPLO
+'''
 tarifas = [
     Tarifa(id_tarifa=1, tipo_tarifa="diaria", periodo="0", precio_por_unidad=Decimal("50.00")),
     Tarifa(id_tarifa=2, tipo_tarifa="diaria_ilimitada", periodo="1", precio_por_unidad=Decimal("70.00")),
@@ -186,6 +187,7 @@ for t in tarifas:
     except IntegrityError:
         db.rollback()
         print(f"Tarifa con ID {t.id_tarifa} ya existe, se omite.")
+'''
 
 ubicadoPrueba1 = UbicadoEn(
 
