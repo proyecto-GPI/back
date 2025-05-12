@@ -3,7 +3,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta, date, datetime
-from models import Oficina, Usuario, Reserva, Modelo, Coche, UbicadoEn, Base, Tarifa
+from models import Oficina, Usuario, Reserva, Tarifa, modelo_tarifa, Modelo, Coche, UbicadoEn, Base, Tarifa
 from sqlalchemy import delete
 from decimal import Decimal
 from sqlalchemy.exc import IntegrityError
@@ -22,11 +22,11 @@ Base.metadata.create_all(bind=engine)
 db = SessionLocal()
 
 # Elimina todas las filas de la tabla
-stmt = delete(Oficina)
+stmt = delete(UbicadoEn)
 db.execute(stmt)
 db.commit()
 
-stmt = delete(Usuario)
+stmt = delete(Reserva)
 db.execute(stmt)
 db.commit()
 
@@ -34,7 +34,11 @@ stmt = delete(Coche)
 db.execute(stmt)
 db.commit()
 
-stmt = delete(Modelo)
+stmt = delete(Usuario)
+db.execute(stmt)
+db.commit()
+
+stmt = delete(modelo_tarifa)
 db.execute(stmt)
 db.commit()
 
@@ -42,9 +46,14 @@ stmt = delete(Tarifa)
 db.execute(stmt)
 db.commit()
 
-stmt = delete(UbicadoEn)
+stmt = delete(Modelo)
 db.execute(stmt)
 db.commit()
+
+stmt = delete(Oficina)
+db.execute(stmt)
+db.commit()
+
 
 # Crear oficinas de prueba
 office1 = Oficina(id_oficina = 1, direccion="Calle Mayor, 1, Madrid", nombre="Oficina Madrid", ciudad="Madrid")
@@ -170,24 +179,6 @@ except IntegrityError:
 
 print("Reserva de prueba creada con éxito.")
 
-#TARIFAS DE EJEMPLO
-'''
-tarifas = [
-    Tarifa(id_tarifa=1, tipo_tarifa="diaria", periodo="0", precio_por_unidad=Decimal("50.00")),
-    Tarifa(id_tarifa=2, tipo_tarifa="diaria_ilimitada", periodo="1", precio_por_unidad=Decimal("70.00")),
-    Tarifa(id_tarifa=3, tipo_tarifa="semanal", periodo="2", precio_por_unidad=Decimal("300.00")),
-    Tarifa(id_tarifa=4, tipo_tarifa="fin_de_semana", periodo="3", precio_por_unidad=Decimal("120.00")),
-    Tarifa(id_tarifa=5, tipo_tarifa="mensual", periodo="0", precio_por_unidad=Decimal("1000.00")) 
-]
-for t in tarifas:
-    try:
-        db.add(t)
-        db.commit()
-        print(f"Tarifa con ID {t.id_tarifa} creada.")
-    except IntegrityError:
-        db.rollback()
-        print(f"Tarifa con ID {t.id_tarifa} ya existe, se omite.")
-'''
 
 ubicadoPrueba1 = UbicadoEn(
 
@@ -214,6 +205,48 @@ try:
 except IntegrityError:
         db.rollback()
         print(f"UbicadoEn con ID {c.id} ya existe, se omite.")
+
+
+
+#---- crear tarifas ----
+tarifas = [
+    Tarifa(
+        tipo_tarifa="diaria_ilimitada", 
+        periodo="1", 
+        precio_por_unidad=500.0
+    ),
+    Tarifa(
+        tipo_tarifa="mensual", 
+        periodo="0", 
+        precio_por_unidad=1500.0,  
+    ),
+    Tarifa(
+        tipo_tarifa="diaria_ilimitada", 
+        periodo="2", 
+        precio_por_unidad=700.0
+    ),
+     Tarifa(
+        tipo_tarifa="mensual", 
+        periodo="0", 
+        precio_por_unidad=1200.0
+    )
+]
+
+modelos[0].modelo_tiene_tarifa = [tarifas[0], tarifas[1]]  # Golf GTI 
+modelos[1].modelo_tiene_tarifa = [tarifas[1], tarifas[2]]  # Model 3 
+modelos[2].modelo_tiene_tarifa = [tarifas[2], tarifas[3]]  # Ibiza FR
+
+# Agregar a la base de datos
+for tarifa in tarifas:
+    try:
+        db.add(tarifa)
+        db.commit()
+        print(f"Tarifa '{tarifa.tipo_tarifa}' creada para los modelos {', '.join([m.modelo for m in tarifa.tarifa_tiene_modelo])}.")
+    except IntegrityError:
+        db.rollback()
+        print(f"Tarifa '{tarifa.tipo_tarifa}' ya existe o hubo un error al agregarla.")
+
+
 
 print("✅ Datos de prueba creados correctamente.")
 
