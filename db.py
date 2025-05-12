@@ -168,24 +168,26 @@ COMMENT ON COLUMN reserva.oficina_recogida_propuesta IS 'Direccion de la oficina
 COMMENT ON COLUMN reserva.oficina_devolucion_propuesta IS  'Análogo a la de recogida.';
 
 
+--tabla intermedia: modelo_tarifa
+DROP TABLE IF EXISTS modelo_tarifa CASCADE;
+CREATE TABLE IF NOT EXISTS modelo_tiene_tarifa (
+  modelo VARCHAR(80) NOT NULL,
+  categoria categoria NOT NULL,
+  id_tarifa INT NOT NULL,
+
+  FOREIGN KEY (modelo, categoria) REFERENCES modelo(modelo, categoria),
+  FOREIGN KEY (id_tarifa) REFERENCES tarifa(id_tarifa),
+
+  UNIQUE (modelo, categoria, id_tarifa)
+);
+
 -- tarifa
 DROP TABLE IF EXISTS tarifa CASCADE;
 CREATE TABLE IF NOT EXISTS tarifa (
   id_tarifa SERIAL PRIMARY KEY,
   tipo_tarifa tipo_tarifa NOT NULL,
   periodo periodo NOT NULL,
-  precio_por_unidad FLOAT NOT NULL,
-  modelo VARCHAR(80) NOT NULL,
-  categoria categoria NOT NULL,
-
-  -- Clave foránea compuesta
-  CONSTRAINT fk_tarifa_modelo
-    FOREIGN KEY (modelo, categoria)
-    REFERENCES modelo(modelo, categoria),
-
-  -- Restricción de unicidad en combinación
-  CONSTRAINT uix_tarifa_combinada
-    UNIQUE (modelo, categoria, tipo_tarifa, periodo)  
+  precio_por_unidad FLOAT NOT NULL 
 );
 
 
