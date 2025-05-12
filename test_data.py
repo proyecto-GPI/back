@@ -3,7 +3,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta, date, datetime
-from models import Oficina, Usuario, Reserva, Modelo, Coche, UbicadoEn, Base
+from models import Oficina, Tarifa, modelo_tarifa, Usuario, Reserva, Modelo, Coche, UbicadoEn, Base
 from sqlalchemy import delete
 from decimal import Decimal
 from sqlalchemy.exc import IntegrityError
@@ -21,11 +21,11 @@ Base.metadata.create_all(bind=engine)
 db = SessionLocal()
 
 # Elimina todas las filas de la tabla
-stmt = delete(Oficina)
+stmt = delete(UbicadoEn)
 db.execute(stmt)
 db.commit()
 
-stmt = delete(Usuario)
+stmt = delete(Reserva)
 db.execute(stmt)
 db.commit()
 
@@ -33,11 +33,27 @@ stmt = delete(Coche)
 db.execute(stmt)
 db.commit()
 
+stmt = delete(Usuario)
+db.execute(stmt)
+db.commit()
+
+stmt = delete(modelo_tarifa)
+db.execute(stmt)
+db.commit()
+
+stmt = delete(Tarifa)
+db.execute(stmt)
+db.commit()
+
 stmt = delete(Modelo)
 db.execute(stmt)
 db.commit()
 
-stmt = delete(UbicadoEn)
+stmt = delete(Oficina)
+db.execute(stmt)
+db.commit()
+
+stmt = delete(Tarifa)
 db.execute(stmt)
 db.commit()
 
@@ -192,6 +208,47 @@ try:
 except IntegrityError:
         db.rollback()
         print(f"UbicadoEn con ID {c.id} ya existe, se omite.")
+
+
+#---- crear tarifas ----
+# Crear tarifas para los modelos existentes
+tarifas = [
+    Tarifa(
+        tipo_tarifa="diaria_ilimitada", 
+        periodo="1", 
+        precio_por_unidad=500.0
+    ),
+    Tarifa(
+        tipo_tarifa="mensual", 
+        periodo="0", 
+        precio_por_unidad=1500.0,  
+    ),
+    Tarifa(
+        tipo_tarifa="diaria_ilimitada", 
+        periodo="2", 
+        precio_por_unidad=700.0
+    ),
+     Tarifa(
+        tipo_tarifa="mensual", 
+        periodo="0", 
+        precio_por_unidad=1200.0
+    )
+]
+
+modelos[0].modelo_tiene_tarifa = [tarifas[0], tarifas[1]]  # Golf GTI 
+modelos[1].modelo_tiene_tarifa = [tarifas[1], tarifas[2]]  # Model 3 
+modelos[2].modelo_tiene_tarifa = [tarifas[2], tarifas[3]]  # Ibiza FR
+
+# Agregar a la base de datos
+for tarifa in tarifas:
+    try:
+        db.add(tarifa)
+        db.commit()
+        print(f"Tarifa '{tarifa.tipo_tarifa}' creada para los modelos {', '.join([m.modelo for m in tarifa.tarifa_tiene_modelo])}.")
+    except IntegrityError:
+        db.rollback()
+        print(f"Tarifa '{tarifa.tipo_tarifa}' ya existe o hubo un error al agregarla.")
+
 
 print("✅ Datos de prueba creados correctamente.")
 
