@@ -59,7 +59,7 @@ db.commit()
 office1 = Oficina(id_oficina = 1, direccion="Calle Mayor, 1, Madrid", nombre="Oficina Madrid", ciudad="Madrid")
 office2 = Oficina(id_oficina = 2, direccion="Av. Diagonal, 123, Barcelona",nombre="Oficina Barcelona", ciudad="Barcelona")
 office3 = Oficina(id_oficina = 3, direccion="Calle Cañailla, 35, Rota", nombre="Oficina Rota", ciudad="Cádiz")
-office4 = Oficina(id_oficina = 4, direccion = "Calle Mártires, 15, Galicia", nombre="Oficina Santiago", ciudad="Santiago")
+office4 = Oficina(id_oficina = 4, direccion = "Calle Mártires, 15, Santiago", nombre="Oficina Santiago", ciudad="Santiago")
 
 # Crear usuarios de prueba
 user1 = Usuario(
@@ -205,7 +205,6 @@ try:
 except IntegrityError:
         db.rollback()
         print(f"UbicadoEn con ID {c.id} ya existe, se omite.")
-
 
 
 #---- crear tarifas ----
